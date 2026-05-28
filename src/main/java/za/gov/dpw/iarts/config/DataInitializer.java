@@ -10,6 +10,7 @@ import za.gov.dpw.iarts.entity.User;
 import za.gov.dpw.iarts.constants.RoleNames;
 import za.gov.dpw.iarts.repository.RoleRepository;
 import za.gov.dpw.iarts.repository.UserRepository;
+import za.gov.dpw.iarts.service.UserService;
 import java.util.HashSet;
 
 @Configuration
@@ -18,7 +19,7 @@ public class DataInitializer {
     private final PasswordEncoder passwordEncoder;
 
     @Bean
-    CommandLineRunner seedRoles(RoleRepository roleRepository, UserRepository userRepository) {
+    CommandLineRunner seedRoles(RoleRepository roleRepository, UserRepository userRepository, UserService userService) {
         return args -> {
             RoleNames.ALL.forEach(roleName -> roleRepository.findByName(roleName).orElseGet(() -> {
                 Role role = new Role();
@@ -36,6 +37,8 @@ public class DataInitializer {
                 admin.setRoles(new HashSet<>(roleRepository.findAll()));
                 userRepository.save(admin);
             }
+
+            userService.seedDefaultUsers();
         };
     }
 }
