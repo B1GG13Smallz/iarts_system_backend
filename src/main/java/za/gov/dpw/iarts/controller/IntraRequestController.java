@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import za.gov.dpw.iarts.dto.IntraRequestDto;
+import za.gov.dpw.iarts.dto.IntraRequestStatusDto;
 import za.gov.dpw.iarts.dto.TechnicianRequestDetailsDto;
 import za.gov.dpw.iarts.entity.IntraRequest;
 import za.gov.dpw.iarts.security.UserPrincipal;
@@ -40,5 +42,10 @@ public class IntraRequestController {
     @GetMapping("/reference/{referenceNumber}")
     public TechnicianRequestDetailsDto findByReference(@PathVariable String referenceNumber) {
         return intraRequestService.findTechnicianDetailsByReference(referenceNumber);
+    }
+
+    @PatchMapping("/{id}/status")
+    public IntraRequest updateStatus(@PathVariable Long id, @Valid @RequestBody IntraRequestStatusDto dto) {
+        return intraRequestService.updateStatus(id, dto);
     }
 }

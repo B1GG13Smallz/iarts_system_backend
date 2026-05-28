@@ -3,6 +3,7 @@ package za.gov.dpw.iarts.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import za.gov.dpw.iarts.dto.IntraRequestDto;
+import za.gov.dpw.iarts.dto.IntraRequestStatusDto;
 import za.gov.dpw.iarts.dto.TechnicianRequestDetailsDto;
 import za.gov.dpw.iarts.entity.AvailabilityRequest;
 import za.gov.dpw.iarts.entity.IntraRequest;
@@ -16,6 +17,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class IntraRequestService {
+    private static final List<String> ALLOWED_STATUSES = List.of("SUBMITTED", "ASSIGNED", "IN_PROGRESS", "READY_FOR_DELIVERY", "COMPLETED");
+
     private final IntraRequestRepository intraRequestRepository;
     private final AvailabilityRequestRepository availabilityRequestRepository;
 
@@ -58,5 +61,16 @@ public class IntraRequestService {
                 availabilityRequest.map(AvailabilityRequest::getStatus).orElse("UNKNOWN"),
                 availabilityRequest.map(AvailabilityRequest::getEquipment).orElse("")
         );
+    }
+
+    public IntraRequest updateStatus(Long id, IntraRequestStatusDto dto) {
+        String status = dto.status().toUpperCase();
+        if (!ALLOWED_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Unsupported INTRA request status");
+        }
+        IntraRequest request = intraRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("INTRA request not found"));
+        request.setStatus(status);
+        return intraRequestRepository.save(request);
     }
 }
