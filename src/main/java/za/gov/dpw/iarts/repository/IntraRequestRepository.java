@@ -4,7 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import za.gov.dpw.iarts.entity.IntraRequest;
 import za.gov.dpw.iarts.entity.User;
 import java.util.List;
+import java.util.Optional;
 
 public interface IntraRequestRepository extends JpaRepository<IntraRequest, Long> {
     List<IntraRequest> findByRequesterOrderByCreatedAtDesc(User requester);
+    Optional<IntraRequest> findFirstByReferenceNumberOrderByCreatedAtDesc(String referenceNumber);
 }

@@ -3,15 +3,21 @@ package za.gov.dpw.iarts.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import za.gov.dpw.iarts.dto.IntraRequestDto;
+import za.gov.dpw.iarts.dto.TechnicianRequestDetailsDto;
+import za.gov.dpw.iarts.entity.AvailabilityRequest;
 import za.gov.dpw.iarts.entity.IntraRequest;
 import za.gov.dpw.iarts.entity.User;
+import za.gov.dpw.iarts.exception.ResourceNotFoundException;
+import za.gov.dpw.iarts.repository.AvailabilityRequestRepository;
 import za.gov.dpw.iarts.repository.IntraRequestRepository;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class IntraRequestService {
     private final IntraRequestRepository intraRequestRepository;
+    private final AvailabilityRequestRepository availabilityRequestRepository;
 
     public IntraRequest create(User requester, IntraRequestDto dto) {
         IntraRequest request = new IntraRequest();
@@ -41,5 +47,16 @@ public class IntraRequestService {
 
     public List<IntraRequest> findMine(User requester) {
         return intraRequestRepository.findByRequesterOrderByCreatedAtDesc(requester);
+    }
+
+    public TechnicianRequestDetailsDto findTechnicianDetailsByReference(String referenceNumber) {
+        IntraRequest request = intraRequestRepository.findFirstByReferenceNumberOrderByCreatedAtDesc(referenceNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("INTRA request not found"));
+        Optional<AvailabilityRequest> availabilityRequest = availabilityRequestRepository.findFirstByReferenceNumberOrderByCreatedAtDesc(referenceNumber);
+        return new TechnicianRequestDetailsDto(
+                request,
+                availabilityRequest.map(AvailabilityRequest::getStatus).orElse("UNKNOWN"),
+                availabilityRequest.map(AvailabilityRequest::getEquipment).orElse("")
+        );
     }
 }

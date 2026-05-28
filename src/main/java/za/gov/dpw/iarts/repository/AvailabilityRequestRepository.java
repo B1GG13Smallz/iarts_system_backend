@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface AvailabilityRequestRepository extends JpaRepository<AvailabilityRequest, Long> {
     List<AvailabilityRequest> findByRequesterOrderByCreatedAtDesc(User requester);
     Optional<AvailabilityRequest> findFirstByRequesterOrderByCreatedAtDesc(User requester);
+    Optional<AvailabilityRequest> findFirstByReferenceNumberOrderByCreatedAtDesc(String referenceNumber);
 }
