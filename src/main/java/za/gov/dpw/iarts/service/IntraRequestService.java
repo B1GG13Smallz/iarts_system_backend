@@ -34,6 +34,12 @@ public class IntraRequestService {
         request.setResponsibility(dto.responsibility());
         request.setChiefUser(dto.chiefUser());
         request.setCallReference(dto.callReference());
+        request.setCurrentOwner(dto.currentOwner());
+        request.setCurrentBuilding(dto.currentBuilding());
+        request.setCurrentFloor(dto.currentFloor());
+        request.setCurrentOffice(dto.currentOffice());
+        request.setCurrentRegion(dto.currentRegion());
+        request.setCurrentContact(dto.currentContact());
         request.setDestinationOwner(dto.destinationOwner());
         request.setDestinationBuilding(dto.destinationBuilding());
         request.setDestinationFloor(dto.destinationFloor());
@@ -45,7 +51,7 @@ public class IntraRequestService {
     }
 
     public List<IntraRequest> findAll() {
-        return intraRequestRepository.findAll();
+        return intraRequestRepository.findAllByOrderByCreatedAtDesc();
     }
 
     public List<IntraRequest> findMine(User requester) {
@@ -59,7 +65,10 @@ public class IntraRequestService {
         return new TechnicianRequestDetailsDto(
                 request,
                 availabilityRequest.map(AvailabilityRequest::getStatus).orElse("UNKNOWN"),
-                availabilityRequest.map(AvailabilityRequest::getEquipment).orElse("")
+                availabilityRequest.map(AvailabilityRequest::getEquipment).orElse(""),
+                availabilityRequest.map(AvailabilityRequest::getDescription).orElse(""),
+                availabilityRequest.map(AvailabilityRequest::getSerialNumber).orElse(""),
+                availabilityRequest.map(AvailabilityRequest::getBarCodeNumber).orElse("")
         );
     }
 

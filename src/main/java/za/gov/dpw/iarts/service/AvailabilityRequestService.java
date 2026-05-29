@@ -29,7 +29,7 @@ public class AvailabilityRequestService {
     }
 
     public List<AvailabilityRequest> findAll() {
-        return availabilityRequestRepository.findAll();
+        return availabilityRequestRepository.findAllByOrderByCreatedAtDesc();
     }
 
     public AvailabilityRequest latestFor(User requester) {
@@ -45,6 +45,22 @@ public class AvailabilityRequestService {
         AvailabilityRequest request = availabilityRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Availability request not found"));
         request.setStatus(status);
+        if (AVAILABLE.equals(status)) {
+            request.setDescription(required(dto.description(), "Description"));
+            request.setSerialNumber(required(dto.serialNumber(), "Serial number"));
+            request.setBarCodeNumber(required(dto.barCodeNumber(), "Bar code number"));
+        } else {
+            request.setDescription(null);
+            request.setSerialNumber(null);
+            request.setBarCodeNumber(null);
+        }
         return availabilityRequestRepository.save(request);
+    }
+
+    private String required(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " is required when confirming available equipment");
+        }
+        return value.trim();
     }
 }

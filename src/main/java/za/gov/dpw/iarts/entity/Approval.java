@@ -2,6 +2,7 @@ package za.gov.dpw.iarts.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -14,11 +15,13 @@ import za.gov.dpw.iarts.constants.ApprovalDecisions;
 @Table(name = "approvals")
 public class Approval extends BaseEntity {
     @ManyToOne(optional = false)
+    @JoinColumn(name = "request_id", nullable = false)
     private AssetRequest request;
     @ManyToOne(optional = false)
+    @JoinColumn(name = "approver_id", nullable = false)
     private User approver;
-    @Column(nullable = false)
+    @Column(name = "decision", nullable = false, length = 50)
     private String decision = ApprovalDecisions.PENDING;
-    @Column(length = 1000)
+    @Column(name = "comments", length = 1000)
     private String comments;
 }

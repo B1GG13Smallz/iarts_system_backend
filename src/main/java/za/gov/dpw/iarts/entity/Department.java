@@ -11,7 +11,8 @@ import lombok.Setter;
 @Entity
 @Table(name = "departments")
 public class Department extends BaseEntity {
-    @Column(nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = true, length = 150)
     private String name;
+    @Column(name = "code", length = 50)
     private String code;
 }

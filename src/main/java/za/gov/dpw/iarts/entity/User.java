@@ -18,18 +18,22 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 public class User extends BaseEntity {
-    @Column(nullable = false, unique = true)
+    @Column(name = "username", nullable = false, unique = true, length = 100)
     private String username;
-    @Column(nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
-    @Column(nullable = false)
+    @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
+    @Column(name = "employee_number", length = 100)
     private String employeeNumber;
+    @Column(name = "phone_number", length = 50)
     private String phoneNumber;
+    @Column(name = "active", nullable = false)
     private boolean active = true;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
     private Department department;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
