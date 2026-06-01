@@ -17,6 +17,9 @@ public class AvailabilityRequest extends BaseEntity {
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
 
+    @Column(name = "requester_name", length = 150)
+    private String requesterName;
+
     @Column(name = "reference_number", nullable = false, length = 100)
     private String referenceNumber;
 

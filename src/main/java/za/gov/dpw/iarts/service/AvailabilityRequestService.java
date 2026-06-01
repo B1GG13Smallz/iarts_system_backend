@@ -22,6 +22,7 @@ public class AvailabilityRequestService {
     public AvailabilityRequest create(User requester, AvailabilityRequestDto dto) {
         AvailabilityRequest request = new AvailabilityRequest();
         request.setRequester(requester);
+        request.setRequesterName(displayName(requester));
         request.setReferenceNumber(dto.referenceNumber());
         request.setEquipment(dto.equipment());
         request.setStatus(PENDING);
@@ -62,5 +63,12 @@ public class AvailabilityRequestService {
             throw new IllegalArgumentException(fieldName + " is required when confirming available equipment");
         }
         return value.trim();
+    }
+
+    private String displayName(User requester) {
+        if (requester.getFullName() != null && !requester.getFullName().isBlank()) {
+            return requester.getFullName().trim();
+        }
+        return requester.getUsername();
     }
 }
