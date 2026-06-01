@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +31,7 @@ public class JwtService {
         Set<String> roles = roleNames(userDetails.getAuthorities());
         List<String> routes = allowedRoutes(roles);
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(userDetails.getUsername())
                 .claim("roles", roles)
                 .claim("routes", routes)

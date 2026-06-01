@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import za.gov.dpw.iarts.dto.IntraRequestDto;
+import za.gov.dpw.iarts.dto.IntraRequestResponseDto;
 import za.gov.dpw.iarts.dto.IntraRequestStatusDto;
 import za.gov.dpw.iarts.dto.TechnicianRequestDetailsDto;
-import za.gov.dpw.iarts.entity.IntraRequest;
 import za.gov.dpw.iarts.security.UserPrincipal;
 import za.gov.dpw.iarts.service.IntraRequestService;
 import java.util.List;
@@ -25,17 +25,17 @@ public class IntraRequestController {
     private final IntraRequestService intraRequestService;
 
     @PostMapping
-    public IntraRequest create(@AuthenticationPrincipal UserPrincipal principal, @Valid @RequestBody IntraRequestDto dto) {
+    public IntraRequestResponseDto create(@AuthenticationPrincipal UserPrincipal principal, @Valid @RequestBody IntraRequestDto dto) {
         return intraRequestService.create(principal.user(), dto);
     }
 
     @GetMapping
-    public List<IntraRequest> all() {
+    public List<IntraRequestResponseDto> all() {
         return intraRequestService.findAll();
     }
 
     @GetMapping("/mine")
-    public List<IntraRequest> mine(@AuthenticationPrincipal UserPrincipal principal) {
+    public List<IntraRequestResponseDto> mine(@AuthenticationPrincipal UserPrincipal principal) {
         return intraRequestService.findMine(principal.user());
     }
 
@@ -45,7 +45,7 @@ public class IntraRequestController {
     }
 
     @PatchMapping("/{id}/status")
-    public IntraRequest updateStatus(@PathVariable Long id, @Valid @RequestBody IntraRequestStatusDto dto) {
+    public IntraRequestResponseDto updateStatus(@PathVariable Long id, @Valid @RequestBody IntraRequestStatusDto dto) {
         return intraRequestService.updateStatus(id, dto);
     }
 }

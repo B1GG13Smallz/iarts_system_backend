@@ -24,5 +24,9 @@ public record IntraRequestDto(
         String destinationOffice,
         String destinationRegion,
         String destinationContact,
-        String movementReason
+        String movementReason,
+        String destinationSignatureDate,
+        String destinationSignatureFileName,
+        String destinationSignatureContentType,
+        String destinationSignatureBase64
 ) {}

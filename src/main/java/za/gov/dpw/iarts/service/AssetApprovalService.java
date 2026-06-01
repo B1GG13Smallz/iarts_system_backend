@@ -9,6 +9,9 @@ import za.gov.dpw.iarts.entity.User;
 import za.gov.dpw.iarts.exception.ResourceNotFoundException;
 import za.gov.dpw.iarts.repository.AssetApprovalRepository;
 import za.gov.dpw.iarts.repository.IntraRequestRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
 
 @Service
@@ -25,11 +28,23 @@ public class AssetApprovalService {
         approval.setRequest(request);
         approval.setApprovedBy(approvedBy);
         approval.setMovableAssetName(dto.movableAssetName());
-        approval.setApprovalDate(dto.approvalDate());
+        approval.setApprovalDate(parseApprovalDate(dto.approvalDate()));
         approval.setSignatureFileName(dto.signatureFileName());
         approval.setSignatureContentType(dto.signatureContentType());
         approval.setSignatureData(decodeSignature(dto.signatureBase64()));
         return assetApprovalRepository.save(approval);
+    }
+
+    private LocalDateTime parseApprovalDate(String approvalDate) {
+        try {
+            return LocalDate.parse(approvalDate).atStartOfDay();
+        } catch (DateTimeParseException ex) {
+            try {
+                return LocalDateTime.parse(approvalDate);
+            } catch (DateTimeParseException nestedEx) {
+                throw new IllegalArgumentException("Approval date is invalid");
+            }
+        }
     }
 
     private byte[] decodeSignature(String signatureBase64) {

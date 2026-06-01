@@ -3,14 +3,21 @@ package za.gov.dpw.iarts.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import za.gov.dpw.iarts.dto.IntraRequestDto;
+import za.gov.dpw.iarts.dto.IntraRequestResponseDto;
 import za.gov.dpw.iarts.dto.IntraRequestStatusDto;
 import za.gov.dpw.iarts.dto.TechnicianRequestDetailsDto;
 import za.gov.dpw.iarts.entity.AvailabilityRequest;
+import za.gov.dpw.iarts.entity.IntraRequestSignature;
 import za.gov.dpw.iarts.entity.IntraRequest;
 import za.gov.dpw.iarts.entity.User;
 import za.gov.dpw.iarts.exception.ResourceNotFoundException;
+import za.gov.dpw.iarts.repository.AssetApprovalRepository;
 import za.gov.dpw.iarts.repository.AvailabilityRequestRepository;
 import za.gov.dpw.iarts.repository.IntraRequestRepository;
+import za.gov.dpw.iarts.repository.IntraRequestSignatureRepository;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,9 +27,11 @@ public class IntraRequestService {
     private static final List<String> ALLOWED_STATUSES = List.of("SUBMITTED", "ASSIGNED", "IN_PROGRESS", "READY_FOR_DELIVERY", "COMPLETED");
 
     private final IntraRequestRepository intraRequestRepository;
+    private final IntraRequestSignatureRepository intraRequestSignatureRepository;
+    private final AssetApprovalRepository assetApprovalRepository;
     private final AvailabilityRequestRepository availabilityRequestRepository;
 
-    public IntraRequest create(User requester, IntraRequestDto dto) {
+    public IntraRequestResponseDto create(User requester, IntraRequestDto dto) {
         IntraRequest request = new IntraRequest();
         request.setRequester(requester);
         request.setReferenceNumber(dto.referenceNumber());
@@ -47,15 +56,23 @@ public class IntraRequestService {
         request.setDestinationRegion(dto.destinationRegion());
         request.setDestinationContact(dto.destinationContact());
         request.setMovementReason(dto.movementReason());
-        return intraRequestRepository.save(request);
+        IntraRequest savedRequest = intraRequestRepository.save(request);
+        saveDestinationSignature(savedRequest, dto);
+        return toResponse(savedRequest);
     }
 
-    public List<IntraRequest> findAll() {
-        return intraRequestRepository.findAllByOrderByCreatedAtDesc();
+    public List<IntraRequestResponseDto> findAll() {
+        return intraRequestRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public List<IntraRequest> findMine(User requester) {
-        return intraRequestRepository.findByRequesterOrderByCreatedAtDesc(requester);
+    public List<IntraRequestResponseDto> findMine(User requester) {
+        return intraRequestRepository.findByRequesterOrderByCreatedAtDesc(requester)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public TechnicianRequestDetailsDto findTechnicianDetailsByReference(String referenceNumber) {
@@ -72,7 +89,7 @@ public class IntraRequestService {
         );
     }
 
-    public IntraRequest updateStatus(Long id, IntraRequestStatusDto dto) {
+    public IntraRequestResponseDto updateStatus(Long id, IntraRequestStatusDto dto) {
         String status = dto.status().toUpperCase();
         if (!ALLOWED_STATUSES.contains(status)) {
             throw new IllegalArgumentException("Unsupported INTRA request status");
@@ -80,6 +97,56 @@ public class IntraRequestService {
         IntraRequest request = intraRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("INTRA request not found"));
         request.setStatus(status);
-        return intraRequestRepository.save(request);
+        return toResponse(intraRequestRepository.save(request));
+    }
+
+    private void saveDestinationSignature(IntraRequest request, IntraRequestDto dto) {
+        if (isBlank(dto.destinationSignatureDate()) && isBlank(dto.destinationSignatureBase64())) {
+            return;
+        }
+
+        IntraRequestSignature signature = new IntraRequestSignature();
+        signature.setRequest(request);
+        signature.setSignatureDate(parseDate(dto.destinationSignatureDate(), "Destination signature date is invalid"));
+        signature.setSignatureFileName(dto.destinationSignatureFileName());
+        signature.setSignatureContentType(dto.destinationSignatureContentType());
+        signature.setSignatureData(decodeSignature(dto.destinationSignatureBase64()));
+        intraRequestSignatureRepository.save(signature);
+    }
+
+    private IntraRequestResponseDto toResponse(IntraRequest request) {
+        return IntraRequestResponseDto.from(
+                request,
+                intraRequestSignatureRepository.findByRequestId(request.getId()),
+                assetApprovalRepository.findFirstByRequestIdOrderByCreatedAtDesc(request.getId())
+        );
+    }
+
+    private LocalDate parseDate(String value, String errorMessage) {
+        if (isBlank(value)) {
+            return null;
+        }
+
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    private byte[] decodeSignature(String signatureBase64) {
+        if (isBlank(signatureBase64)) {
+            return null;
+        }
+
+        try {
+            return Base64.getDecoder().decode(signatureBase64);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Destination signature file is not valid base64");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }
