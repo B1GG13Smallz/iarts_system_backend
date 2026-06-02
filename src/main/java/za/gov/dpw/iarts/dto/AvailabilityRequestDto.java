@@ -2,4 +2,4 @@ package za.gov.dpw.iarts.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record AvailabilityRequestDto(@NotBlank String referenceNumber, @NotBlank String equipment) {}
+public record AvailabilityRequestDto(String referenceNumber, @NotBlank String equipment, String rank) {}

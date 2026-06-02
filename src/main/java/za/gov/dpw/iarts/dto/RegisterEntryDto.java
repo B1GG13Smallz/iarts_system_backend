@@ -16,7 +16,7 @@ public record RegisterEntryDto(
         String roomNumber,
         @Valid @NotNull RegisterSignatureDto userSignOut,
         String storesOfficialName,
-        @Valid @NotNull RegisterSignatureDto storesOfficialSignOut,
+        @Valid RegisterSignatureDto storesOfficialSignOut,
         String comment
 ) {
 }

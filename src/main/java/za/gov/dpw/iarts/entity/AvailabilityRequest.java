@@ -20,11 +20,14 @@ public class AvailabilityRequest extends BaseEntity {
     @Column(name = "requester_name", length = 150)
     private String requesterName;
 
-    @Column(name = "reference_number", nullable = false, length = 100)
+    @Column(name = "reference_number", length = 100)
     private String referenceNumber;
 
     @Column(name = "equipment", nullable = false, length = 255)
     private String equipment;
+
+    @Column(name = "rank_band", length = 120)
+    private String rank;
 
     @Column(name = "description", length = 2000)
     private String description;

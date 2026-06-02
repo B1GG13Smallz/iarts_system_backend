@@ -36,6 +36,9 @@ public class IntraRequest extends BaseEntity {
     @Column(name = "responsibility", length = 255)
     private String responsibility;
 
+    @Column(name = "rank_band", length = 120)
+    private String rank;
+
     @Column(name = "chief_user", nullable = false, length = 255)
     private String chiefUser;
 

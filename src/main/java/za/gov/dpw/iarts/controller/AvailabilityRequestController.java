@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import za.gov.dpw.iarts.dto.AvailabilityRequestDto;
 import za.gov.dpw.iarts.dto.AvailabilityRequestResponseDto;
+import za.gov.dpw.iarts.dto.AvailabilityReferenceDto;
 import za.gov.dpw.iarts.dto.AvailabilityStatusDto;
 import za.gov.dpw.iarts.entity.AvailabilityRequest;
 import za.gov.dpw.iarts.security.UserPrincipal;
@@ -44,12 +45,22 @@ public class AvailabilityRequestController {
         return toDto(availabilityRequestService.updateStatus(id, dto));
     }
 
+    @PatchMapping("/{id}/reference")
+    public AvailabilityRequestResponseDto updateReference(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long id,
+            @Valid @RequestBody AvailabilityReferenceDto dto
+    ) {
+        return toDto(availabilityRequestService.updateReference(principal.user(), id, dto));
+    }
+
     private AvailabilityRequestResponseDto toDto(AvailabilityRequest request) {
         return new AvailabilityRequestResponseDto(
                 request.getId(),
                 requesterName(request),
                 request.getReferenceNumber(),
                 request.getEquipment(),
+                request.getRank(),
                 request.getDescription(),
                 request.getSerialNumber(),
                 request.getBarCodeNumber(),

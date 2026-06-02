@@ -10,6 +10,7 @@ public record IntraRequestDto(
         @NotBlank String subDirectorate,
         String objective,
         String responsibility,
+        String rank,
         @NotBlank String chiefUser,
         String callReference,
         String currentOwner,

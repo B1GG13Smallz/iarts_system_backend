@@ -60,14 +60,14 @@ public class RegisterEntry extends BaseEntity {
     @Column(name = "stores_official_name", length = 255)
     private String storesOfficialName;
 
-    @Column(name = "stores_official_signature_file_name", nullable = false, length = 255)
+    @Column(name = "stores_official_signature_file_name", length = 255)
     private String storesOfficialSignatureFileName;
 
-    @Column(name = "stores_official_signature_content_type", nullable = false, length = 100)
+    @Column(name = "stores_official_signature_content_type", length = 100)
     private String storesOfficialSignatureContentType;
 
     @Lob
-    @Column(name = "stores_official_signature_data", nullable = false, columnDefinition = "LONGBLOB")
+    @Column(name = "stores_official_signature_data", columnDefinition = "LONGBLOB")
     private byte[] storesOfficialSignatureData;
 
     @Column(name = "comment", length = 2000)

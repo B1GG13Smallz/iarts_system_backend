@@ -7,6 +7,7 @@ public record AvailabilityRequestResponseDto(
         String requesterName,
         String referenceNumber,
         String equipment,
+        String rank,
         String description,
         String serialNumber,
         String barCodeNumber,

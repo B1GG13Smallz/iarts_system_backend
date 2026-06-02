@@ -2,14 +2,18 @@ package za.gov.dpw.iarts.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import za.gov.dpw.iarts.constants.RoleNames;
 import za.gov.dpw.iarts.dto.RegisterEntryDto;
+import za.gov.dpw.iarts.dto.RegisterEntryResponseDto;
 import za.gov.dpw.iarts.dto.RegisterSignatureDto;
+import za.gov.dpw.iarts.dto.StoresOfficialSignatureDto;
 import za.gov.dpw.iarts.entity.RegisterEntry;
 import za.gov.dpw.iarts.entity.User;
 import za.gov.dpw.iarts.repository.RegisterEntryRepository;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Base64;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -43,12 +47,47 @@ public class RegisterEntryService {
         entry.setUserSignatureFileName(dto.userSignOut().fileName());
         entry.setUserSignatureContentType(dto.userSignOut().contentType());
         entry.setUserSignatureData(decodeSignature(dto.userSignOut()));
-        entry.setStoresOfficialName(dto.storesOfficialName());
-        entry.setStoresOfficialSignatureFileName(dto.storesOfficialSignOut().fileName());
-        entry.setStoresOfficialSignatureContentType(dto.storesOfficialSignOut().contentType());
-        entry.setStoresOfficialSignatureData(decodeSignature(dto.storesOfficialSignOut()));
+        applyStoresOfficialSignature(entry, dto.storesOfficialName(), dto.storesOfficialSignOut());
         entry.setComment(dto.comment());
         return registerEntryRepository.save(entry);
+    }
+
+    public List<RegisterEntryResponseDto> findByRegisterType(String registerType) {
+        if (!REGISTER_TYPES.contains(registerType)) {
+            throw new IllegalArgumentException("Register type is invalid");
+        }
+
+        return registerEntryRepository.findByRegisterTypeOrderByCreatedAtDesc(registerType)
+                .stream()
+                .map(RegisterEntryResponseDto::from)
+                .toList();
+    }
+
+    public RegisterEntryResponseDto signStoresOfficial(User user, Long id, StoresOfficialSignatureDto dto) {
+        if (!hasRole(user, RoleNames.ICT_STOREROOM) && !hasRole(user, RoleNames.ADMIN)) {
+            throw new IllegalArgumentException("Only storeroom officials can sign register entries");
+        }
+
+        RegisterEntry entry = registerEntryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Register entry not found"));
+        applyStoresOfficialSignature(entry, dto.storesOfficialName(), dto.storesOfficialSignOut());
+        return RegisterEntryResponseDto.from(registerEntryRepository.save(entry));
+    }
+
+    private void applyStoresOfficialSignature(RegisterEntry entry, String storesOfficialName, RegisterSignatureDto signature) {
+        entry.setStoresOfficialName(storesOfficialName);
+
+        if (signature == null) {
+            return;
+        }
+
+        entry.setStoresOfficialSignatureFileName(signature.fileName());
+        entry.setStoresOfficialSignatureContentType(signature.contentType());
+        entry.setStoresOfficialSignatureData(decodeSignature(signature));
+    }
+
+    private boolean hasRole(User user, String roleName) {
+        return user.getRoles().stream().anyMatch(role -> roleName.equals(role.getName()));
     }
 
     private LocalDate parseDate(String date) {

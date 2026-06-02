@@ -41,6 +41,7 @@ public class IntraRequestService {
         request.setSubDirectorate(dto.subDirectorate());
         request.setObjective(dto.objective());
         request.setResponsibility(dto.responsibility());
+        request.setRank(dto.rank());
         request.setChiefUser(dto.chiefUser());
         request.setCallReference(dto.callReference());
         request.setCurrentOwner(dto.currentOwner());

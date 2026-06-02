@@ -3,6 +3,7 @@ package za.gov.dpw.iarts.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import za.gov.dpw.iarts.dto.AvailabilityRequestDto;
+import za.gov.dpw.iarts.dto.AvailabilityReferenceDto;
 import za.gov.dpw.iarts.dto.AvailabilityStatusDto;
 import za.gov.dpw.iarts.entity.AvailabilityRequest;
 import za.gov.dpw.iarts.entity.User;
@@ -23,8 +24,9 @@ public class AvailabilityRequestService {
         AvailabilityRequest request = new AvailabilityRequest();
         request.setRequester(requester);
         request.setRequesterName(displayName(requester));
-        request.setReferenceNumber(dto.referenceNumber());
+        request.setReferenceNumber(clean(dto.referenceNumber()));
         request.setEquipment(dto.equipment());
+        request.setRank(dto.rank());
         request.setStatus(PENDING);
         return availabilityRequestRepository.save(request);
     }
@@ -58,11 +60,27 @@ public class AvailabilityRequestService {
         return availabilityRequestRepository.save(request);
     }
 
+    public AvailabilityRequest updateReference(User requester, Long id, AvailabilityReferenceDto dto) {
+        AvailabilityRequest request = availabilityRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Availability request not found"));
+
+        if (!request.getRequester().getId().equals(requester.getId())) {
+            throw new IllegalArgumentException("Availability request does not belong to the signed-in user");
+        }
+
+        request.setReferenceNumber(required(dto.referenceNumber(), "Reference number").toUpperCase());
+        return availabilityRequestRepository.save(request);
+    }
+
     private String required(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " is required when confirming available equipment");
         }
         return value.trim();
+    }
+
+    private String clean(String value) {
+        return value == null || value.isBlank() ? "" : value.trim();
     }
 
     private String displayName(User requester) {
