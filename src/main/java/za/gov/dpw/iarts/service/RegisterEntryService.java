@@ -68,7 +68,7 @@ public class RegisterEntryService {
             throw new IllegalArgumentException("Only storeroom officials can sign register entries");
         }
 
-        RegisterEntry entry = registerEntryRepository.findById(id)
+        RegisterEntry entry = registerEntryRepository.findWithCreatedByById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Register entry not found"));
         applyStoresOfficialSignature(entry, dto.storesOfficialName(), dto.storesOfficialSignOut());
         return RegisterEntryResponseDto.from(registerEntryRepository.save(entry));
