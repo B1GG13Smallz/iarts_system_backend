@@ -101,4 +101,7 @@ public class PermissionRemoval extends BaseEntity {
 
     @Column(name = "security_date")
     private LocalDate securityDate;
+
+    @Column(name = "workflow_status", nullable = false, length = 80)
+    private String workflowStatus;
 }

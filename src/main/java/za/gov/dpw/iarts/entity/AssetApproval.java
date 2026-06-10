@@ -16,9 +16,13 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "asset_approvals")
 public class AssetApproval extends BaseEntity {
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id")
     private IntraRequest request;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_removal_id")
+    private PermissionRemoval permissionRemoval;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by_id", nullable = false)
