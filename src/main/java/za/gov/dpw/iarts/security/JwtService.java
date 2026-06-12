@@ -65,10 +65,50 @@ public class JwtService {
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    private List<String> allowedRoutes(Set<String> roles) {
+    public List<String> allowedRoutes(Set<String> roles) {
         Set<String> routes = new TreeSet<>();
+        if (roles.contains(RoleNames.ADMIN)) {
+            routes.add("/dashboard");
+            routes.add("/requests");
+            routes.add("/request-status");
+            routes.add("/laptop-policy-acceptance");
+            routes.add("/assets-approval");
+            routes.add("/asset-return");
+            routes.add("/register");
+            routes.add("/permission-to-remove-equipment");
+            routes.add("/technician");
+            return List.copyOf(routes);
+        }
         if (roles.contains(RoleNames.END_USER)) {
             routes.add("/requests");
+            routes.add("/request-status");
+            routes.add("/laptop-policy-acceptance");
+            routes.add("/permission-to-remove-equipment");
+        }
+        if (roles.contains(RoleNames.TECHNICIAN)) {
+            routes.add("/technician");
+            routes.add("/permission-to-remove-equipment");
+        }
+        if (roles.contains(RoleNames.ICT_STOREROOM)) {
+            routes.add("/dashboard");
+            routes.add("/register");
+            routes.add("/asset-return");
+            routes.add("/permission-to-remove-equipment");
+        }
+        if (roles.contains(RoleNames.ASSET_MANAGEMENT)) {
+            routes.add("/assets-approval");
+            routes.add("/asset-return");
+            routes.add("/request-status");
+        }
+        if (roles.contains(RoleNames.ICT_MANAGEMENT)) {
+            routes.add("/assets-approval");
+            routes.add("/request-status");
+        }
+        if (roles.contains(RoleNames.SECURITY)) {
+            routes.add("/permission-to-remove-equipment");
+        }
+        if (roles.contains(RoleNames.AUDITOR)) {
+            routes.add("/dashboard");
         }
         return List.copyOf(routes);
     }

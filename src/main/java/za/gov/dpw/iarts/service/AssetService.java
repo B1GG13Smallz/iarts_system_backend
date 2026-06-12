@@ -42,6 +42,14 @@ public class AssetService {
         return equipmentRepository.findAll().stream().map(this::toEquipmentStockDto).toList();
     }
 
+    @Transactional(readOnly = true)
+    public EquipmentStockDto findEquipmentStockById(Long id) {
+        Equipment equipment = equipmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+
+        return toEquipmentStockDto(equipment);
+    }
+
     @Transactional
     public EquipmentStockDto createEquipmentStock(EquipmentStockDto dto) {
         Equipment saved = saveEquipment(new Equipment(), dto);

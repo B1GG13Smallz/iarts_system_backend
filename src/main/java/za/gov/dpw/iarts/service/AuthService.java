@@ -11,6 +11,7 @@ import za.gov.dpw.iarts.constants.AuditActions;
 import za.gov.dpw.iarts.repository.UserRepository;
 import za.gov.dpw.iarts.security.CustomUserDetailsService;
 import za.gov.dpw.iarts.security.JwtService;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +29,7 @@ public class AuthService {
         String token = jwtService.generateToken(details);
         User user = userRepository.findByUsername(request.username()).orElseThrow();
         auditService.record(user, AuditActions.LOGIN, "User", user.getId(), "Login successful");
-        return new AuthResponse(token, "Bearer", user.getId(), user.getUsername(), user.getRoles().stream().map(role -> role.getName()).collect(Collectors.toSet()));
+        Set<String> roles = user.getRoles().stream().map(role -> role.getName()).collect(Collectors.toSet());
+        return new AuthResponse(token, "Bearer", user.getId(), user.getUsername(), roles, jwtService.allowedRoutes(roles));
     }
 }

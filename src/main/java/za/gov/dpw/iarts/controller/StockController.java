@@ -5,17 +5,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import za.gov.dpw.iarts.dto.StockSummaryDto;
-import za.gov.dpw.iarts.service.AssetService;
+import za.gov.dpw.iarts.service.AssetCaptureService;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/stock")
 @RequiredArgsConstructor
 public class StockController {
-    private final AssetService assetService;
+    private final AssetCaptureService assetCaptureService;
 
     @GetMapping("/summary")
     public List<StockSummaryDto> summary() {
-        return assetService.stockSummary();
+        return assetCaptureService.stockSummary();
     }
 }

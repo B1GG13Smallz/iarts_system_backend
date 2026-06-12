@@ -2,6 +2,7 @@ package za.gov.dpw.iarts.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import za.gov.dpw.iarts.dto.AvailabilityRequestDto;
 import za.gov.dpw.iarts.dto.AvailabilityReferenceDto;
 import za.gov.dpw.iarts.dto.AvailabilityStatusDto;
@@ -19,7 +20,9 @@ public class AvailabilityRequestService {
     private static final String UNAVAILABLE = "UNAVAILABLE";
 
     private final AvailabilityRequestRepository availabilityRequestRepository;
+    private final AssetCaptureService assetCaptureService;
 
+    @Transactional
     public AvailabilityRequest create(User requester, AvailabilityRequestDto dto) {
         AvailabilityRequest request = new AvailabilityRequest();
         request.setRequester(requester);
@@ -28,24 +31,30 @@ public class AvailabilityRequestService {
         request.setEquipment(dto.equipment());
         request.setRank(dto.rank());
         request.setStatus(PENDING);
-        return availabilityRequestRepository.save(request);
+
+        AvailabilityRequest saved = availabilityRequestRepository.save(request);
+        assetCaptureService.markAvailableAssetUnavailable(saved.getEquipment(), saved.getRank());
+        return saved;
     }
 
+    @Transactional(readOnly = true)
     public List<AvailabilityRequest> findAll() {
         return availabilityRequestRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    @Transactional(readOnly = true)
     public AvailabilityRequest latestFor(User requester) {
         return availabilityRequestRepository.findFirstByRequesterOrderByCreatedAtDesc(requester)
                 .orElseThrow(() -> new ResourceNotFoundException("Availability request not found"));
     }
 
+    @Transactional
     public AvailabilityRequest updateStatus(Long id, AvailabilityStatusDto dto) {
         String status = dto.status().toUpperCase();
         if (!AVAILABLE.equals(status) && !UNAVAILABLE.equals(status) && !PENDING.equals(status)) {
             throw new IllegalArgumentException("Status must be PENDING, AVAILABLE, or UNAVAILABLE");
         }
-        AvailabilityRequest request = availabilityRequestRepository.findById(id)
+        AvailabilityRequest request = availabilityRequestRepository.findWithRequesterById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Availability request not found"));
         request.setStatus(status);
         if (AVAILABLE.equals(status)) {
@@ -60,8 +69,9 @@ public class AvailabilityRequestService {
         return availabilityRequestRepository.save(request);
     }
 
+    @Transactional
     public AvailabilityRequest updateReference(User requester, Long id, AvailabilityReferenceDto dto) {
-        AvailabilityRequest request = availabilityRequestRepository.findById(id)
+        AvailabilityRequest request = availabilityRequestRepository.findWithRequesterById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Availability request not found"));
 
         if (!request.getRequester().getId().equals(requester.getId())) {
