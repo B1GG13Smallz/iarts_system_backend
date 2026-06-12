@@ -77,6 +77,27 @@ public class AssetCaptureService {
                 });
     }
 
+    @Transactional
+    public void markMatchingAssetAvailable(String assetType, String storageRank) {
+        String normalizedAssetType = optional(assetType);
+        String normalizedStorageRank = optional(storageRank);
+
+        if (normalizedAssetType == null || normalizedStorageRank == null) {
+            return;
+        }
+
+        assetCaptureRepository
+                .findFirstByAssetTypeIgnoreCaseAndStorageRankIgnoreCaseAndStockStatusOrderByCreatedAtDesc(
+                        normalizedAssetType,
+                        normalizedStorageRank,
+                        StockStatuses.UNAVAILABLE
+                )
+                .ifPresent(assetCapture -> {
+                    assetCapture.setStockStatus(StockStatuses.AVAILABLE);
+                    assetCaptureRepository.save(assetCapture);
+                });
+    }
+
     private AssetCapture findAssetCapture(Long id) {
         return assetCaptureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset capture not found"));

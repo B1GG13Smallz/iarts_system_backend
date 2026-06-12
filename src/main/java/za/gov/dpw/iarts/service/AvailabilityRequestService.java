@@ -61,6 +61,7 @@ public class AvailabilityRequestService {
             request.setDescription(required(dto.description(), "Description"));
             request.setSerialNumber(required(dto.serialNumber(), "Serial number"));
             request.setBarCodeNumber(required(dto.barCodeNumber(), "Bar code number"));
+            assetCaptureService.markMatchingAssetAvailable(request.getEquipment(), request.getRank());
         } else {
             request.setDescription(null);
             request.setSerialNumber(null);
@@ -90,7 +91,7 @@ public class AvailabilityRequestService {
     }
 
     private String clean(String value) {
-        return value == null || value.isBlank() ? "" : value.trim();
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private String displayName(User requester) {
