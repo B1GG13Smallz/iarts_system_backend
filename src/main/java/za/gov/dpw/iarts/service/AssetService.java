@@ -2,8 +2,10 @@ package za.gov.dpw.iarts.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import za.gov.dpw.iarts.dto.AssignmentDto;
 import za.gov.dpw.iarts.dto.EquipmentDto;
+import za.gov.dpw.iarts.dto.EquipmentStockDto;
 import za.gov.dpw.iarts.dto.PolicyAcceptanceDto;
 import za.gov.dpw.iarts.dto.StockSummaryDto;
 import za.gov.dpw.iarts.exception.ResourceNotFoundException;
@@ -35,6 +37,22 @@ public class AssetService {
     private final AssetRequestRepository requestRepository;
     private final AuditService auditService;
 
+    @Transactional(readOnly = true)
+    public List<EquipmentStockDto> findEquipmentStock() {
+        return equipmentRepository.findAll().stream().map(this::toEquipmentStockDto).toList();
+    }
+
+    @Transactional
+    public EquipmentStockDto createEquipmentStock(EquipmentStockDto dto) {
+        Equipment saved = saveEquipment(new Equipment(), dto);
+        StockRecord stock = new StockRecord();
+        stock.setEquipment(saved);
+        applyStockFields(stock, dto);
+        stockRecordRepository.save(stock);
+
+        return toEquipmentStockDto(saved, stock);
+    }
+
     public Equipment createEquipment(EquipmentDto dto) {
         Equipment equipment = new Equipment();
         equipment.setAssetTag(dto.assetTag());
@@ -51,6 +69,31 @@ public class AssetService {
         stock.setStatus(StockStatuses.AVAILABLE);
         stockRecordRepository.save(stock);
         return saved;
+    }
+
+    @Transactional
+    public EquipmentStockDto updateEquipmentStock(Long id, EquipmentStockDto dto) {
+        Equipment equipment = equipmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+        Equipment saved = saveEquipment(equipment, dto);
+        StockRecord stock = stockRecordRepository.findFirstByEquipmentOrderByIdAsc(saved)
+                .orElseGet(() -> {
+                    StockRecord created = new StockRecord();
+                    created.setEquipment(saved);
+                    return created;
+                });
+        applyStockFields(stock, dto);
+        stockRecordRepository.save(stock);
+
+        return toEquipmentStockDto(saved, stock);
+    }
+
+    @Transactional
+    public void deleteEquipmentStock(Long id) {
+        Equipment equipment = equipmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+        stockRecordRepository.deleteByEquipment(equipment);
+        equipmentRepository.delete(equipment);
     }
 
     public Assignment assign(AssignmentDto dto) {
@@ -82,5 +125,47 @@ public class AssetService {
 
     public List<StockSummaryDto> stockSummary() {
         return StockStatuses.ALL.stream().map(status -> new StockSummaryDto(status, stockRecordRepository.findByStatus(status).size())).toList();
+    }
+
+    private Equipment saveEquipment(Equipment equipment, EquipmentStockDto dto) {
+        equipment.setAssetTag(dto.assetTag());
+        equipment.setSerialNumber(dto.serialNumber());
+        equipment.setAssetType(dto.assetType());
+        equipment.setMake(dto.make());
+        equipment.setModel(dto.model());
+        equipment.setLocation(dto.location());
+        equipment.setNetTrackReference(dto.netTrackReference());
+        equipment.setLaptopPolicyRequired(dto.laptopPolicyRequired());
+
+        return equipmentRepository.save(equipment);
+    }
+
+    private void applyStockFields(StockRecord stock, EquipmentStockDto dto) {
+        stock.setStatus(dto.stockStatus() == null || dto.stockStatus().isBlank() ? StockStatuses.AVAILABLE : dto.stockStatus());
+        stock.setStoreroomLocation(dto.storeroomLocation());
+        stock.setRemarks(dto.remarks());
+    }
+
+    private EquipmentStockDto toEquipmentStockDto(Equipment equipment) {
+        StockRecord stock = stockRecordRepository.findFirstByEquipmentOrderByIdAsc(equipment).orElse(null);
+
+        return toEquipmentStockDto(equipment, stock);
+    }
+
+    private EquipmentStockDto toEquipmentStockDto(Equipment equipment, StockRecord stock) {
+        return new EquipmentStockDto(
+                equipment.getId(),
+                equipment.getAssetTag(),
+                equipment.getSerialNumber(),
+                equipment.getAssetType(),
+                equipment.getMake(),
+                equipment.getModel(),
+                equipment.getLocation(),
+                equipment.getNetTrackReference(),
+                equipment.isLaptopPolicyRequired(),
+                stock == null ? null : stock.getId(),
+                stock == null ? StockStatuses.AVAILABLE : stock.getStatus(),
+                stock == null ? null : stock.getStoreroomLocation(),
+                stock == null ? null : stock.getRemarks());
     }
 }
